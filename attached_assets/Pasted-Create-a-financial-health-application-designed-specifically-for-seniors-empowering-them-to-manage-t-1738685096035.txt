@@ -1,0 +1,46 @@
+Create a financial health application designed specifically for seniors, empowering them to manage their finances with ease, security, and confidence. The app will integrate with the Investec API and Programmable Banking Cards to help seniors track spending, set savings goals, make safe transactions, and access educational content. The focus is on simplicity, accessibility, and security.
+
+Key Features to Implement:
+
+Financial Education Hub:
+
+Implement interactive modules with easy-to-follow lessons on digital banking, budgeting, savings, investments, and avoiding scams.
+Provide both video/audio and text-based learning resources.
+Safe & Guided Transactions:
+
+Step-by-step transaction guide for making payments, transferring money, and managing accounts.
+Use the Investec API to pull real-time transaction data.
+Voice & Large Text Accessibility:
+
+Add voice command functionality to guide users through key app actions (e.g., “Check my balance” or “Set up a bill payment”).
+Enable large font size adjustment for better readability.
+Budget & Expense Tracker:
+
+Create a feature to link bank accounts, categorize transactions, and track spending patterns.
+Include spending alerts when the budget is nearing its limit.
+Allow seniors to create savings goals (e.g., "Save for vacation") and track progress.
+Programmable Card Management:
+
+Integrate Investec’s Programmable Banking Cards to allow users to set daily/monthly spending limits, recurring payment controls, and approved merchant restrictions.
+Fraud Alerts & Security Tips:
+
+Implement real-time fraud alerts based on detected suspicious transactions.
+Provide daily security tips on protecting personal and financial data.
+Family & Trusted Contacts:
+
+Allow users to link trusted family members or advisors who can monitor the app and assist in emergencies.
+Technical Requirements:
+
+API Integration: Use the Investec API for transaction data, account linking, and managing programmable banking cards.
+Database: Store user preferences, transaction history, and savings goals securely (use Replit’s database or any cloud database).
+Frontend: Build a simple, intuitive user interface with easy navigation (HTML/CSS/JS for web app or React Native for mobile app).
+Backend: Set up a backend that handles user data securely and connects to the Investec API for financial services (Python, Node.js, or any suitable backend framework).
+Security Features:
+
+Implement two-factor authentication (2FA).
+Encrypt user data both in transit and at rest.
+Comply with privacy regulations (e.g., GDPR) for handling sensitive financial data.
+Submission:
+
+Host the code on a public GitHub repository.
+Include a README with detailed setup instructions, an overview of the app’s features, and how to use the Investec API.
