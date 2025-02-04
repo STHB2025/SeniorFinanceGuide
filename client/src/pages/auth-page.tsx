@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Redirect } from "wouter";
-import { Bank } from "lucide-react";
+import { Wallet } from "lucide-react";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -37,7 +37,7 @@ export default function AuthPage() {
         <div className="flex flex-col justify-center">
           <div className="mb-8 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-              <Bank className="h-12 w-12 text-primary" />
+              <Wallet className="h-12 w-12 text-primary" />
               <h1 className="text-4xl font-bold">SeniorFinance</h1>
             </div>
             <p className="text-muted-foreground text-lg">
