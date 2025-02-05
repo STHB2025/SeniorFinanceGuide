@@ -43,13 +43,31 @@ export const transactions = pgTable("transactions", {
   suspicious: boolean("suspicious").default(false),
 });
 
+export const cards = pgTable("cards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  cardNumber: text("card_number").notNull(),
+  cardholderName: text("cardholder_name").notNull(),
+  expiryDate: text("expiry_date").notNull(),
+  isLocked: boolean("is_locked").default(false),
+  dailyLimit: decimal("daily_limit", { precision: 10, scale: 2 }).notNull(),
+  cardType: text("card_type").notNull(), // debit/credit
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   emergencyContacts: many(emergencyContacts),
   budgets: many(budgets),
   transactions: many(transactions),
+  cards: many(cards),
 }));
 
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 export type InsertUser = typeof users.$inferInsert;
 export type SelectUser = typeof users.$inferSelect;
+
+export const insertCardSchema = createInsertSchema(cards);
+export const selectCardSchema = createSelectSchema(cards);
+export type InsertCard = typeof cards.$inferInsert;
+export type SelectCard = typeof cards.$inferSelect;

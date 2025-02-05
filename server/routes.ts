@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
+import cardsRouter from "./api/cards";
 import { db } from "@db";
 import { transactions, budgets, emergencyContacts } from "@db/schema";
 import { eq } from "drizzle-orm";
@@ -15,6 +16,9 @@ export function registerRoutes(app: Express): Server {
     }
     next();
   };
+
+  // Cards routes
+  app.use("/api/cards", requireAuth, cardsRouter);
 
   // Transactions
   app.get("/api/transactions", requireAuth, async (req, res) => {

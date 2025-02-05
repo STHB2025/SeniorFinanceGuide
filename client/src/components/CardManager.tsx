@@ -1,0 +1,261 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { 
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { 
+  CreditCard, 
+  Lock, 
+  Unlock, 
+  Plus,
+  DollarSign
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+
+type CardData = {
+  id: number;
+  cardNumber: string;
+  cardholderName: string;
+  expiryDate: string;
+  isLocked: boolean;
+  dailyLimit: number;
+  cardType: "debit" | "credit";
+};
+
+export default function CardManager() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const form = useForm<Omit<CardData, "id" | "isLocked">>();
+
+  const { data: cards, isLoading } = useQuery<CardData[]>({
+    queryKey: ["/api/cards"],
+  });
+
+  const addCardMutation = useMutation({
+    mutationFn: async (data: Omit<CardData, "id" | "isLocked">) => {
+      const res = await apiRequest("POST", "/api/cards", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cards"] });
+      form.reset();
+      toast({
+        title: "Card Added",
+        description: "Your card has been added successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleLockMutation = useMutation({
+    mutationFn: async ({ id, isLocked }: { id: number; isLocked: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/cards/${id}/lock`, { isLocked });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cards"] });
+      toast({
+        title: "Card Updated",
+        description: "Card lock status has been updated.",
+      });
+    },
+  });
+
+  const updateLimitMutation = useMutation({
+    mutationFn: async ({ id, dailyLimit }: { id: number; dailyLimit: number }) => {
+      const res = await apiRequest("PATCH", `/api/cards/${id}/limit`, { dailyLimit });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cards"] });
+      toast({
+        title: "Limit Updated",
+        description: "Card daily limit has been updated.",
+      });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        {cards?.map((card) => (
+          <Card key={card.id}>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard className={`h-6 w-6 ${card.isLocked ? "text-muted-foreground" : "text-primary"}`} />
+                  <div>
+                    <h3 className={`font-medium ${user?.preferLargeText ? "text-xl" : "text-lg"}`}>
+                      •••• {card.cardNumber.slice(-4)}
+                    </h3>
+                    <p className={`text-muted-foreground ${user?.preferLargeText ? "text-lg" : "text-sm"}`}>
+                      {card.cardType.charAt(0).toUpperCase() + card.cardType.slice(1)}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toggleLockMutation.mutate({ id: card.id, isLocked: !card.isLocked })}
+                  className={user?.preferLargeText ? "h-10 w-10" : "h-8 w-8"}
+                >
+                  {card.isLocked ? (
+                    <Lock className="h-4 w-4" />
+                  ) : (
+                    <Unlock className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className={`text-muted-foreground ${user?.preferLargeText ? "text-lg" : "text-sm"}`}>
+                    Cardholder:
+                  </span>
+                  <span className={user?.preferLargeText ? "text-lg" : ""}>
+                    {card.cardholderName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-muted-foreground ${user?.preferLargeText ? "text-lg" : "text-sm"}`}>
+                    Expires:
+                  </span>
+                  <span className={user?.preferLargeText ? "text-lg" : ""}>
+                    {card.expiryDate}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className={`text-muted-foreground ${user?.preferLargeText ? "text-lg" : "text-sm"}`}>
+                    Daily Limit:
+                  </span>
+                  <span className={user?.preferLargeText ? "text-lg" : ""}>
+                    ${card.dailyLimit.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className={user?.preferLargeText ? "text-2xl" : "text-xl"}>
+            Add New Card
+          </CardTitle>
+          <CardDescription className={user?.preferLargeText ? "text-lg" : ""}>
+            Add a new card to manage your spending and security.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form 
+              onSubmit={form.handleSubmit((data) => addCardMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="cardNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
+                        Card Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cardholderName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
+                        Cardholder Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="expiryDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
+                        Expiry Date (MM/YY)
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dailyLimit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
+                        Daily Limit ($)
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          className={user?.preferLargeText ? "text-lg" : ""} 
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <Button 
+                type="submit"
+                className={`w-full gap-2 ${user?.preferLargeText ? "text-lg" : ""}`}
+                disabled={addCardMutation.isPending}
+              >
+                <Plus className="h-4 w-4" />
+                Add Card
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -7,7 +7,7 @@ import TransactionList from "@/components/TransactionList";
 import BudgetTracker from "@/components/BudgetTracker";
 import EmergencyContacts from "@/components/EmergencyContacts";
 import VoiceCommands from "@/components/VoiceCommands";
-import { Settings, Book, LogOut } from "lucide-react";
+import { Settings, Book, LogOut, CreditCard } from "lucide-react";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
@@ -18,13 +18,19 @@ export default function HomePage() {
   return (
     <div className={`min-h-screen bg-background p-6 ${textStyles}`}>
       <VoiceCommands />
-      
+
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-8">
           <h1 className={`font-bold ${largeText ? "text-4xl" : "text-2xl"}`}>
             Welcome, {user?.fullName}
           </h1>
           <div className="flex gap-4">
+            <Link href="/cards">
+              <Button variant="outline" className="gap-2">
+                <CreditCard size={20} />
+                Manage Cards
+              </Button>
+            </Link>
             <Button
               variant="outline"
               onClick={() => setLargeText(!largeText)}
@@ -39,7 +45,7 @@ export default function HomePage() {
                 Learning Center
               </Button>
             </Link>
-            <Button 
+            <Button
               variant="destructive"
               onClick={() => logoutMutation.mutate()}
               className="gap-2"
