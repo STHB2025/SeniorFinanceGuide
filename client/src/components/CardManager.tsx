@@ -41,7 +41,15 @@ type CardData = {
 export default function CardManager() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const form = useForm<Omit<CardData, "id" | "isLocked">>();
+  const form = useForm<Omit<CardData, "id" | "isLocked">>({
+    defaultValues: {
+      cardType: "",
+      cardNumber: "",
+      cardholderName: "",
+      expiryDate: "",
+      dailyLimit: 0,
+    },
+  });
 
   const { data: cards, isLoading } = useQuery<CardData[]>({
     queryKey: ["/api/cards"],
@@ -162,7 +170,12 @@ export default function CardManager() {
                     Daily Limit:
                   </span>
                   <span className={user?.preferLargeText ? "text-lg" : ""}>
-                    ${card.dailyLimit.toLocaleString()}
+                    {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(card.dailyLimit)}
                   </span>
                 </div>
               </div>
@@ -190,7 +203,8 @@ export default function CardManager() {
                 <FormField
                   control={form.control}
                   name="cardType"
-                  render={({ field }) => (
+                  rules={{ required: "Card type is required" }}
+                  render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
                         Card Type
@@ -198,13 +212,18 @@ export default function CardManager() {
                       <FormControl>
                         <select
                           {...field}
-                          className={`w-full p-3 rounded-md border bg-background ${user?.preferLargeText ? "text-lg" : ""}`}
+                          className={`w-full p-3 rounded-md border bg-background ${
+                            user?.preferLargeText ? "text-lg" : ""
+                          } ${error ? "border-destructive" : ""}`}
                         >
                           <option value="">Select card type</option>
                           <option value="debit">Debit Card</option>
                           <option value="credit">Credit Card</option>
                         </select>
                       </FormControl>
+                      {error && (
+                        <div className="text-sm text-destructive">{error.message}</div>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -253,7 +272,14 @@ export default function CardManager() {
                 <FormField
                   control={form.control}
                   name="dailyLimit"
-                  render={({ field }) => (
+                  rules={{
+                    required: "Daily limit is required",
+                    min: { value: 0, message: "Daily limit must be positive" },
+                    validate: {
+                      validNumber: (value: any) => !isNaN(value) || "Please enter a valid number",
+                    },
+                  }}
+                  render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
                         Daily Limit ($)
@@ -265,9 +291,14 @@ export default function CardManager() {
                           min="0"
                           step="0.01"
                           placeholder="Enter daily spending limit"
-                          className={user?.preferLargeText ? "text-lg" : ""}
+                          className={`${user?.preferLargeText ? "text-lg" : ""} ${
+                            error ? "border-destructive" : ""
+                          }`}
                         />
                       </FormControl>
+                      {error && (
+                        <div className="text-sm text-destructive">{error.message}</div>
+                      )}
                     </FormItem>
                   )}
                 />
