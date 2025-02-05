@@ -1,11 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { 
+import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription 
+  CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,13 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { 
-  CreditCard, 
-  Lock, 
-  Unlock, 
+import {
+  CreditCard,
+  Lock,
+  Unlock,
   Plus,
-  DollarSign
+  DollarSign,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -126,9 +127,12 @@ export default function CardManager() {
                   variant="ghost"
                   size="icon"
                   onClick={() => toggleLockMutation.mutate({ id: card.id, isLocked: !card.isLocked })}
-                  className={user?.preferLargeText ? "h-10 w-10" : "h-8 w-8"}
+                  className={`${user?.preferLargeText ? "h-10 w-10" : "h-8 w-8"} ${toggleLockMutation.isPending ? "opacity-50" : ""}`}
+                  disabled={toggleLockMutation.isPending}
                 >
-                  {card.isLocked ? (
+                  {toggleLockMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : card.isLocked ? (
                     <Lock className="h-4 w-4" />
                   ) : (
                     <Unlock className="h-4 w-4" />
@@ -178,11 +182,32 @@ export default function CardManager() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form 
+            <form
               onSubmit={form.handleSubmit((data) => addCardMutation.mutate(data))}
               className="space-y-4"
             >
               <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="cardType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
+                        Card Type
+                      </FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className={`w-full p-3 rounded-md border bg-background ${user?.preferLargeText ? "text-lg" : ""}`}
+                        >
+                          <option value="">Select card type</option>
+                          <option value="debit">Debit Card</option>
+                          <option value="credit">Credit Card</option>
+                        </select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="cardNumber"
@@ -234,17 +259,20 @@ export default function CardManager() {
                         Daily Limit ($)
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
-                          type="number" 
-                          className={user?.preferLargeText ? "text-lg" : ""} 
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Enter daily spending limit"
+                          className={user?.preferLargeText ? "text-lg" : ""}
                         />
                       </FormControl>
                     </FormItem>
                   )}
                 />
               </div>
-              <Button 
+              <Button
                 type="submit"
                 className={`w-full gap-2 ${user?.preferLargeText ? "text-lg" : ""}`}
                 disabled={addCardMutation.isPending}
