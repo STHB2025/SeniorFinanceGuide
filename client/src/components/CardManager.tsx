@@ -49,6 +49,7 @@ export default function CardManager() {
       expiryDate: "",
       dailyLimit: 0,
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   const { data: cards, isLoading } = useQuery<CardData[]>({
@@ -230,14 +231,28 @@ export default function CardManager() {
                 <FormField
                   control={form.control}
                   name="cardNumber"
-                  render={({ field }) => (
+                  rules={{
+                    required: "Card number is required",
+                    pattern: {
+                      value: /^\d{16}$/,
+                      message: "Card number must be 16 digits"
+                    }
+                  }}
+                  render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
                         Card Number
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                        <Input 
+                          {...field} 
+                          className={`${user?.preferLargeText ? "text-lg" : ""} ${error ? "border-destructive" : ""}`}
+                          placeholder="Enter 16-digit card number"
+                        />
                       </FormControl>
+                      {error && (
+                        <div className="text-sm text-destructive">{error.message}</div>
+                      )}
                     </FormItem>
                   )}
                 />
@@ -277,7 +292,9 @@ export default function CardManager() {
                     min: { value: 0, message: "Daily limit must be positive" },
                     validate: {
                       validNumber: (value: any) => !isNaN(value) || "Please enter a valid number",
-                    },
+                      validDecimal: (value: any) => 
+                        Number.isFinite(parseFloat(value)) || "Please enter a valid decimal number"
+                    }
                   }}
                   render={({ field, fieldState: { error } }) => (
                     <FormItem>
