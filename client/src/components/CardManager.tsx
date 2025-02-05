@@ -41,15 +41,26 @@ type CardData = {
 export default function CardManager() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Format currency consistently
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   const form = useForm<Omit<CardData, "id" | "isLocked">>({
     defaultValues: {
-      cardType: "",
+      cardType: "debit",
       cardNumber: "",
       cardholderName: "",
       expiryDate: "",
       dailyLimit: 0,
     },
-    mode: "onChange", // Enable real-time validation
+    mode: "onChange",
   });
 
   const { data: cards, isLoading } = useQuery<CardData[]>({
@@ -171,12 +182,7 @@ export default function CardManager() {
                     Daily Limit:
                   </span>
                   <span className={user?.preferLargeText ? "text-lg" : ""}>
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }).format(card.dailyLimit)}
+                    {formatCurrency(card.dailyLimit)}
                   </span>
                 </div>
               </div>
@@ -232,10 +238,13 @@ export default function CardManager() {
                   control={form.control}
                   name="cardNumber"
                   rules={{
-                    required: "Card number is required",
+                    required: "Please enter your card number",
                     pattern: {
                       value: /^\d{16}$/,
-                      message: "Card number must be 16 digits"
+                      message: "Please enter a valid 16-digit card number"
+                    },
+                    validate: {
+                      numbersOnly: (value) => /^\d+$/.test(value) || "Card number must contain only digits"
                     }
                   }}
                   render={({ field, fieldState: { error } }) => (
@@ -248,6 +257,7 @@ export default function CardManager() {
                           {...field} 
                           className={`${user?.preferLargeText ? "text-lg" : ""} ${error ? "border-destructive" : ""}`}
                           placeholder="Enter 16-digit card number"
+                          maxLength={16}
                         />
                       </FormControl>
                       {error && (
@@ -310,18 +320,19 @@ export default function CardManager() {
                   control={form.control}
                   name="dailyLimit"
                   rules={{
-                    required: "Daily limit is required",
-                    min: { value: 0, message: "Daily limit must be positive" },
+                    required: "Please enter a daily spending limit",
+                    min: { value: 0, message: "Daily limit must be greater than 0" },
                     validate: {
-                      validNumber: (value: any) => !isNaN(value) || "Please enter a valid number",
-                      validDecimal: (value: any) => 
-                        Number.isFinite(parseFloat(value)) || "Please enter a valid decimal number"
+                      validNumber: (value) => !isNaN(value) || "Please enter a valid amount",
+                      validDecimal: (value) => 
+                        Number.isFinite(parseFloat(value)) || "Please enter a valid amount with up to 2 decimal places",
+                      positiveAmount: (value) => parseFloat(value) > 0 || "Amount must be greater than 0"
                     }
                   }}
                   render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
-                        Daily Limit ($)
+                        Daily Limit
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -337,6 +348,11 @@ export default function CardManager() {
                       </FormControl>
                       {error && (
                         <div className="text-sm text-destructive">{error.message}</div>
+                      )}
+                      {field.value > 0 && (
+                        <div className="text-sm text-muted-foreground">
+                          Will be displayed as: {formatCurrency(parseFloat(field.value.toString()))}
+                        </div>
                       )}
                     </FormItem>
                   )}
