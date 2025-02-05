@@ -259,28 +259,50 @@ export default function CardManager() {
                 <FormField
                   control={form.control}
                   name="cardholderName"
-                  render={({ field }) => (
+                  rules={{ required: "Cardholder name is required" }}
+                  render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
                         Cardholder Name
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                        <Input 
+                          {...field} 
+                          className={`${user?.preferLargeText ? "text-lg" : ""} ${error ? "border-destructive" : ""}`}
+                          placeholder="Enter cardholder name"
+                        />
                       </FormControl>
+                      {error && (
+                        <div className="text-sm text-destructive">{error.message}</div>
+                      )}
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="expiryDate"
-                  render={({ field }) => (
+                  rules={{
+                    required: "Expiry date is required",
+                    pattern: {
+                      value: /^\d{2}\/\d{2}$/,
+                      message: "Expiry date must be in MM/YY format"
+                    }
+                  }}
+                  render={({ field, fieldState: { error } }) => (
                     <FormItem>
                       <FormLabel className={user?.preferLargeText ? "text-lg" : ""}>
                         Expiry Date (MM/YY)
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} className={user?.preferLargeText ? "text-lg" : ""} />
+                        <Input 
+                          {...field} 
+                          className={`${user?.preferLargeText ? "text-lg" : ""} ${error ? "border-destructive" : ""}`}
+                          placeholder="MM/YY"
+                        />
                       </FormControl>
+                      {error && (
+                        <div className="text-sm text-destructive">{error.message}</div>
+                      )}
                     </FormItem>
                   )}
                 />
